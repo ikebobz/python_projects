@@ -9,12 +9,13 @@ import numpy as np
 
 disag1 = ['Male','Female']
 #disag1 = ['TLD (Tenofovir+Lamivudine+Dolutegravir)','TLD (Tenofovir+Lamivudine+Efavirenz) -300/300/400','ABC/3TC/DTG (Abacavir+Lamivudine+Dolutegravir) 120/60mg/10mg']
-disag2 = ['<1','1 - 4','5-9','10--14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50-54','55-59','60-64','65+']
+#disag2 = ['<1','1 - 4','5-9','10--14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50-54','55-59','60-64','65+']
 #disag2 = ['<1 Month','1 Month','2 Months','3 Months','4 Months','5 Months','6 Months']
 #disag2 = ['&lt;1','1 - 4','5-9','10--14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50+']
-#disag2 = ['<=72hrs','>72hrs - <2months','2-12 Months']
+disag2 = ['<=72hrs','>72hrs - <2months','2-12 Months']
 #disag2 = ['<15','>=15']
-#disag3 = ['TBA rt-HCW','TBA Orthodox','Congregational setting']
+#disag2 = ['<10','10--14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50+']
+disag3 = ['TBA rt-HCW','TBA Orthodox','Congregational setting','Delivery Homes (DH)','Spoke Health facilities  (s-HF)']
 #disag3 = ['Negative Result','Positive Result','Known Positive Result','Known Negative Result','Already on ART at Time of Visit','Unknown HIV Status at time of visit','Unknown HIV Status and tested for HIV']
 #disag3 = ['Spouse','Self','Sexual Partner','Social Network','Other','Caregiver for Child','Children']
 #disag3 = ['First time testers','Retesters']
@@ -29,7 +30,7 @@ disag2 = ['<1','1 - 4','5-9','10--14','15-19','20-24','25-29','30-34','35-39','4
 #disag3 = ['VL suppressed','Clients Return To Treatment','Others']
 #disag3 = ['Children Enumerated','Partners Elicited']
 #disag3 = ['Passive Notification/Self','Provider Assisted','Contracted','Dual Approach']
-disag3 = ['Paedriatic Sevices','Malnutrition Clinic','Blood Bank']
+#disag3 = ['Paedriatic Sevices','Malnutrition Clinic','Blood Bank']
 #disag3 = ['OVC','Spoke Site','VCT']
 
 
@@ -130,14 +131,14 @@ def rendertags2DF():
         print('Writing New Data Element................')
         name = row['Data Element Name']
         id = lookupde(name)
-        f.writelines('<tr><td rowspan = {}>{}</td>'.format(rowspan,name))
+        f.writelines('<tr><td rowspan = {}>{}</td>'.format(rowspan,stripOfPrefix(name)))
         for type in disag3:
           if type == disag3[0]:
             f.writelines('<td><b>{}</b></td>'.format(type))
           else:
             f.writelines('<tr><td><b>{}</b></td>'.format(type))
           for i in range(0,len(disag2)):
-             catopcmb = '{}, {}'.format(disag2[i],type)
+             catopcmb = '{}, {}'.format(type,disag2[i])
              catopcmbid = lookupde(catopcmb,type='cat')
              #tit = 'PMTCT_Add_{} {}'.format(name,catopcmb)
              tit = '{} {}'.format(name,catopcmb)
@@ -147,17 +148,19 @@ def rendertags2DF():
 def rendertags1DF():
     f = open('source2.html','a')
     global disag1, disag2, disag3, srcframe, refframe
-    f.writelines('<table><tbody>')
+    f.writelines('<tbody>')
     for index,row in srcframe.iterrows():
         print('Writing New Data Element................')
         name = row['Data Element Name']
         id = lookupde(name)
+        f.writelines('<tr><td>{}</td><td></td>'.format(stripOfPrefix(name)))
         for i in range(0,len(disag2)):
            catopcmb = '{}'.format(disag2[i])
            catopcmbid = lookupde(catopcmb,type='cat')
-           tit = 'PMTCT_Add_{} {}'.format(name,catopcmb)
+           tit = '{} {}'.format(name,catopcmb)
            f.writelines('<td><input id="{}-{}-val" name="entryfield" title="{}" value = "[ {} ]"></td>'.format(id,catopcmbid,tit,tit))
         f.writelines('<td name = "total"></td></tr>')
+    f.writelines('</tbody>')
     
      
     
@@ -175,8 +178,15 @@ def lookupde(e,type = 'de'):
         for i,r in refframe_catcom.iterrows():
             if r['name'].strip().lower() == e.strip().lower():
                 return r['id']
+            
+def stripOfPrefix(string):
+    return string.strip().replace('HFR1_','').replace('PMTCT_Add_','').replace('ART_ADD_','').replace('Indexadd_','').replace('htsadd_','').replace('PWSF_','')
+def removeHtmlDecor(value):
+    return value.replace('&lt;','<')
+
+
 def main():
-    rendertags3D()
+    rendertags1DF()
     
 
 if __name__ == '__main__':
